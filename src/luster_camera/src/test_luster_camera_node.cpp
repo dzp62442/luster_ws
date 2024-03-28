@@ -16,7 +16,7 @@ int main(int argc, char **argv)
     sleep(2);  // 等待2秒，让子线程先执行
 
     // 主线程，处理图像
-    ros::Rate rate(30);
+    ros::Rate rate(luster_camera.getFps());
     while (ros::ok())
     {
         luster_camera.returnImage(ptz_img);
@@ -27,6 +27,7 @@ int main(int argc, char **argv)
 
     // 终止处理
     ros::shutdown();
+    luster_camera.shutDown();
     loop_execute.join();
 
 

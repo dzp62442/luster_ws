@@ -4,6 +4,15 @@ bool LusterCamera::g_bExit = false;  // 为静态成员变量提供初始值
 cv::Mat LusterCamera::rgbImage;
 std::mutex LusterCamera::luster_camera_buffer_mutex_;
 
+LusterCamera::LusterCamera() : nh_("~")
+{
+    nh_.param("luster_camera_width", luster_camera_width, 1920);
+    nh_.param("luster_camera_height", luster_camera_height, 1200);
+    nh_.param("luster_camera_fps", luster_camera_fps, 30.0);
+    nh_.param("luster_camera_gain", luster_camera_gain, 15.0);
+}
+
+
 int LusterCamera::grabImage()
 {
     int nRet = MV_OK;
@@ -41,15 +50,8 @@ int LusterCamera::grabImage()
             break;
         }
 
-        unsigned int nIndex = 0;
-
-        if (nIndex >= stDeviceList.nDeviceNum)
-        {
-            printf("Intput error!\n");
-            break;
-        }
-
         // 选择设备并创建句柄
+        unsigned int nIndex = 0;
         nRet = MV_CC_CreateHandle(&handle, stDeviceList.pDeviceInfo[nIndex]);
         if (MV_OK != nRet)
         {
@@ -82,6 +84,44 @@ int LusterCamera::grabImage()
                 printf("Warning: Get Packet Size fail nRet [0x%x]!\n", nPacketSize);
             }
         }
+
+        // 设置相机图像高度
+        unsigned int nHeightValue = luster_camera_height;  // 宽高设置时需考虑步进(16)，即设置宽高需16的倍数
+        nRet = MV_CC_SetIntValue(handle, "Height", nHeightValue);    
+        if (MV_OK == nRet)
+            printf("set height %d OK!\n", nHeightValue);
+        else
+            printf("set height failed! nRet [%x]\n\n", nRet);
+
+        // 设置相机图像宽度
+        unsigned int nWidthValue = luster_camera_width;  // 宽高设置时需考虑步进(16)，即设置宽高需16的倍数
+        nRet = MV_CC_SetIntValue(handle, "Width", nWidthValue);    
+        if (MV_OK == nRet)
+            printf("set width %d OK!\n", nWidthValue);
+        else
+            printf("set width failed! nRet [%x]\n\n", nRet);
+
+        // 设置相机增益
+        float fGainValue = luster_camera_gain;
+        nRet = MV_CC_SetFloatValue(handle, "Gain", fGainValue);
+        if (MV_OK == nRet)
+            printf("set Gain %f OK!\n", fGainValue);
+        else
+            printf("set Gain failed! nRet [%x]\n\n", nRet);
+
+        // 获取相机实际采集帧率
+        MVCC_FLOATVALUE stResultingFrameRate = {0};
+        nRet = MV_CC_GetFloatValue(handle, "ResultingFrameRate", &stResultingFrameRate);
+        if (MV_OK == nRet)
+        {
+            printf("resulting frame rate current value:%f\n", stResultingFrameRate.fCurValue);
+            printf("resulting frame rate max value:%f\n", stResultingFrameRate.fMax);
+            printf("resulting frame rate min value:%f\n\n", stResultingFrameRate.fMin);
+        }
+        else
+        {
+            printf("get resulting frame rate failed! nRet [%x]\n\n", nRet);
+        }        
 		
         // 设置触发模式为off
         nRet = MV_CC_SetEnumValue(handle, "TriggerMode", 0);
@@ -100,19 +140,19 @@ int LusterCamera::grabImage()
         }
 
         pthread_t nThreadID;
-        nRet = pthread_create(&nThreadID, NULL ,WorkThread , handle);
+        nRet = pthread_create(&nThreadID, NULL, WorkThread, handle);
         if (nRet != 0)
         {
             printf("thread create failed.ret = %d\n",nRet);
             break;
         }
 
-        while(ros::ok()) {
+        while(ros::ok() && !g_bExit) {
             sleep(1);
         }
-        g_bExit = true;
 
         // 停止取流
+        printf("exiting ...\n");
         nRet = MV_CC_StopGrabbing(handle);
         if (MV_OK != nRet)
         {
@@ -146,7 +186,7 @@ int LusterCamera::grabImage()
         }
     }
 
-    printf("exit\n");
+    printf("exit.\n");
     return 0;
 }
 

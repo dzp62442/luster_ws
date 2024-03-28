@@ -1,0 +1,23 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "/usr/include/**",
+                "/usr/local/cuda/include/**",
+                "/usr/include/aarch64-linux-gnu/**",
+                "/usr/local/include/**",
+                "/opt/ros/noetic/include/**",
+                "/opt/miivii/include/**",
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/src/luster_camera/include/**"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c17",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "linux-gcc-arm64"
+        }
+    ],
+    "version": 4
+}

@@ -19,15 +19,21 @@ private:
     static cv::Mat rgbImage;
     static std::mutex luster_camera_buffer_mutex_;
 
+private:
+    ros::NodeHandle nh_;
+    int luster_camera_width, luster_camera_height;
+    double luster_camera_fps, luster_camera_gain;
+
 public:
-    LusterCamera() {}
+    LusterCamera();
     ~LusterCamera() {}
 
 public:
-
     int grabImage();
     bool returnImage(cv::Mat &image);
     bool PrintDeviceInfo(MV_CC_DEVICE_INFO* pstMVDevInfo);
+    int getFps() { return luster_camera_fps; }
+    void shutDown() { g_bExit = true; }
     
     static void* WorkThread(void* pUser)
     {
@@ -68,7 +74,7 @@ public:
                     lock.unlock();  // 解锁
                 }
             }
-            else{
+            else {
                 printf("No data[%x]\n", nRet);
             }
         }

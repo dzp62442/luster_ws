@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include "luster_camera/MvCameraControl.h"
+#include <opencv2/opencv.hpp>
 
 bool g_bExit = false;
 
@@ -86,6 +87,14 @@ static void* WorkThread(void* pUser)
         {
             printf("GetOneFrame, Width[%d], Height[%d], nFrameNum[%d]\n", 
                 stImageInfo.nWidth, stImageInfo.nHeight, stImageInfo.nFrameNum);
+            std::cout << stImageInfo.enPixelType << "\n";
+            // 对于BayerRG8格式的图像
+            if (stImageInfo.enPixelType == PixelType_Gvsp_BayerRG8) {
+                cv::Mat bayerImage(stImageInfo.nHeight, stImageInfo.nWidth, CV_8UC1, pData);
+                cv::Mat rgbImage;
+                cv::cvtColor(bayerImage, rgbImage, cv::COLOR_BayerRG2RGB);  // 转换Bayer图像为RGB图像
+                cv::imwrite("image.png", bayerImage);
+            }
         }
         else{
             printf("No data[%x]\n", nRet);

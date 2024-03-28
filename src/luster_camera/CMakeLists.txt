@@ -110,7 +110,7 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 # Create the executables and link them to libs
-add_executable(test_luster_camera_node src/GrabImage.cpp)
+add_executable(test_luster_camera_node src/main.cpp)
 
 target_link_libraries(test_luster_camera_node
     ${PROJECT_NAME}

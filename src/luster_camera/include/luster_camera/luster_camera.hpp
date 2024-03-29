@@ -65,7 +65,6 @@ public:
             {
                 printf("GetOneFrame, Width[%d], Height[%d], nFrameNum[%d]\n", 
                     stImageInfo.nWidth, stImageInfo.nHeight, stImageInfo.nFrameNum);
-                std::cout << stImageInfo.enPixelType << "\n";
                 // 对于BayerRG8格式的图像
                 if (stImageInfo.enPixelType == PixelType_Gvsp_BayerRG8) {
                     cv::Mat bayerImage(stImageInfo.nHeight, stImageInfo.nWidth, CV_8UC1, pData);
@@ -73,6 +72,8 @@ public:
                     cv::cvtColor(bayerImage, rgbImage, cv::COLOR_BayerRG2RGB);  // 转换Bayer图像为RGB图像
                     lock.unlock();  // 解锁
                 }
+                else
+                    std::cout << "stImageInfo.enPixelType: " << stImageInfo.enPixelType << "\n";
             }
             else {
                 printf("No data[%x]\n", nRet);

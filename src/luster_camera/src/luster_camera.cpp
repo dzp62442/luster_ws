@@ -109,19 +109,21 @@ int LusterCamera::grabImage()
         else
             printf("set Gain failed! nRet [%x]\n\n", nRet);
 
+        // 设置相机采集帧率
+        float fFrameRateValue = luster_camera_fps;
+        nRet = MV_CC_SetFrameRate(handle, fFrameRateValue);
+        if (MV_OK == nRet)
+            printf("set Frame Rate %f OK!\n", fFrameRateValue);
+        else
+            printf("set Frame Rate failed! nRet [%x]\n\n", nRet);
+
         // 获取相机实际采集帧率
         MVCC_FLOATVALUE stResultingFrameRate = {0};
         nRet = MV_CC_GetFloatValue(handle, "ResultingFrameRate", &stResultingFrameRate);
         if (MV_OK == nRet)
-        {
             printf("resulting frame rate current value:%f\n", stResultingFrameRate.fCurValue);
-            printf("resulting frame rate max value:%f\n", stResultingFrameRate.fMax);
-            printf("resulting frame rate min value:%f\n\n", stResultingFrameRate.fMin);
-        }
         else
-        {
-            printf("get resulting frame rate failed! nRet [%x]\n\n", nRet);
-        }        
+            printf("get resulting frame rate failed! nRet [%x]\n\n", nRet);      
 		
         // 设置触发模式为off
         nRet = MV_CC_SetEnumValue(handle, "TriggerMode", 0);
@@ -229,7 +231,6 @@ bool LusterCamera::returnImage(cv::Mat &img)
     // 线程锁
     std::unique_lock<std::mutex> lock(luster_camera_buffer_mutex_);
     if (! rgbImage.empty()) {
-        std::cout << "The image is " << rgbImage.cols << rgbImage.rows << std::endl;
         img = rgbImage.clone();
     }
     lock.unlock();  // 获取完图像立刻释放锁，再进行后续处理

@@ -2,7 +2,7 @@
     <!-- test_luster_camera_node -->
     <node pkg="luster_camera" type="test_luster_camera_node" name="test_luster_camera_node"
           required="true" clear_params="true" output="screen">
-        <rosparam command="load" file="$(find mv_cameras)/config/luster_camera_cfg.yaml"/>
+        <rosparam command="load" file="$(find luster_camera)/config/luster_camera_cfg.yaml"/>
     </node>
 
     <!-- rviz -->

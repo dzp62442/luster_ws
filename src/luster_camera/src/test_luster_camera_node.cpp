@@ -5,21 +5,24 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "test_luster_camera_node");
     ros::NodeHandle nh;
-    LusterCamera luster_camera;
+    ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Error);
+
+    std::shared_ptr<LusterCamera> luster_camera;  // 底盘环视相机
+    luster_camera = std::make_shared<LusterCamera>();
     cv::Mat ptz_img;
     image_transport::ImageTransport image_transport(nh);
     image_transport::Publisher image_transport_publisher;
     image_transport_publisher = image_transport.advertise("/luster_img", 1);
 
     // 子线程，循环采集图像
-    std::thread loop_execute(&LusterCamera::grabImage, &luster_camera);
+    std::thread loop_execute(&LusterCamera::grabImage, luster_camera);
     sleep(2);  // 等待2秒，让子线程先执行
 
     // 主线程，处理图像
-    ros::Rate rate(luster_camera.getFps());
+    ros::Rate rate(luster_camera->getFps());
     while (ros::ok())
     {
-        luster_camera.returnImage(ptz_img);
+        luster_camera->returnImage(ptz_img);
         sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", ptz_img).toImageMsg();
         image_transport_publisher.publish(msg);
         rate.sleep();
@@ -27,7 +30,7 @@ int main(int argc, char **argv)
 
     // 终止处理
     ros::shutdown();
-    luster_camera.shutDown();
+    luster_camera->shutDown();
     loop_execute.join();
 
 
